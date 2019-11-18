@@ -12,6 +12,11 @@ const server = express();
 server.use(express.json());
 server.use(cors());
 
+// Сделали функцию , чтобы не дублировать код
+function findPostIndexByID(id) {
+    return posts.findIndex(o => o.id === id);
+
+}
 
 server.get('/posts', (req, res) => {
     res.send(posts);
@@ -30,24 +35,49 @@ server.post('/posts', (req, res) => {
         res.send(posts);
     }
 
-    const index = posts.findIndex(o => o.id === body.id);
+    const index = findPostIndexByID(id);
     if (index === -1) {
         res.status(404).send(errorNotFound);
         return;
     };
 
     posts[index].content = body.content;
+    res.send(posts);
 });
 
+// Удаление постов по id
 server.delete('/posts/:id', (req, res) => {
     const id = Number(req.params.id);
-    const index = posts.findIndex(o => o.id === id);
+    const index = findPostIndexByID(id);
     if (index === -1) {
         res.status(404).send(errorNotFound);
         return;
-    }
-posts.splice(index , 1);
-res.send(posts);
+    };
+    posts.splice(index, 1);
+    res.send(posts);
 });
 
+// Лайки
+server.post('/posts/:id/likes', (req, res) => {
+    const id = Number(req.params.id);
+    const index = findPostIndexByID(id);
+    if (index === -1) {
+        res.status(404).send(errorNotFound);
+        return;
+    };
+    posts[index].likes++;
+    res.send(posts);
+});
+
+// Дизлайки
+server.delete('/posts/:id/likes', (req, res) => {
+    const id = Number(req.params.id);
+    const index = findPostIndexByID(id);
+    if (index === -1) {
+        res.status(404).send(errorNotFound);
+        return;
+    };
+    posts[index].likes--;
+    res.send(posts);
+});
 server.listen(process.env.PORT || 9999);
